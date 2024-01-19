@@ -1,18 +1,36 @@
-import React from 'react'
+import React from "react";
 
 // önerilen başlangıç stateleri
-const initialMessage = ''
-const initialEmail = ''
-const initialSteps = 0
-const initialIndex = 4 //  "B" nin bulunduğu indexi
+//const initialMessage = ''
+//const initialEmail = ''
+//const initialSteps = 0
+//const initialIndex = 4 //  "B" nin bulunduğu indexi
+
+const initialState = {
+  message: "",
+  email: "",
+  steps: 0,
+  index: 4,
+};
 
 export default function AppFunctional(props) {
   // AŞAĞIDAKİ HELPERLAR SADECE ÖNERİDİR.
   // Bunları silip kendi mantığınızla sıfırdan geliştirebilirsiniz.
+  let x = (state.index % 3) + 1; // mod3 kalanı bulmaya çalışıyorum.indeximi 3 e böldüğümde kalanım benm x ekseninde hangi karede olduğumu göstericem
+  let y = Math.floor(state.index / 3) + 1;
+
+  const [state, setState] = useState(initialState);
 
   function getXY() {
     // Koordinatları izlemek için bir state e sahip olmak gerekli değildir.
     // Bunları hesaplayabilmek için "B" nin hangi indexte olduğunu bilmek yeterlidir.
+    //Burdaki koordinatları dönecek (state in içinden indexi alabiliriz zaten index var state in içinde )
+    //Bu koordinatları nasıl hesaplatabiliriz???
+    // 3 e bölsem.
+    let x = (state.index % 3) + 1; // mod3 kalanı bulmaya çalışıyorum.indeximi 3 e böldüğümde kalanım benm x ekseninde hangi karede olduğumu göstericem
+    let y = Math.floor(state.index / 3) + 1;
+
+    return { x, y }; // Ben ona indexi vericem o bana koordinatları verecek :)
   }
 
   function getXYMesaj() {
@@ -23,21 +41,66 @@ export default function AppFunctional(props) {
 
   function reset() {
     // Tüm stateleri başlangıç ​​değerlerine sıfırlamak için bu helperı kullanın.
+    setState(initialState);
   }
 
   function sonrakiIndex(yon) {
     // Bu helper bir yön ("sol", "yukarı", vb.) alır ve "B" nin bir sonraki indeksinin ne olduğunu hesaplar.
     // Gridin kenarına ulaşıldığında başka gidecek yer olmadığı için,
     // şu anki indeksi değiştirmemeli.
+    if (yon === "left" && getXY().x !== 1) {
+      setState({
+        ...state,
+        index: state.index - 1,
+        steps: state.stapes + 1,
+        message: "",
+      });
+    } else if (yon === "right" && getXY().x !== 3) {
+      setState({
+        ...state,
+        index: state.index + 1,
+        steps: state.stapes + 1,
+        message: "",
+      });
+    } else if (yon === "up" && getXY().y !== 1) {
+      setState({
+        ...state,
+        index: state.index - 3,
+        steps: state.stapes + 3,
+        message: "",
+      });
+    } else if (yon === "down" && getXY().y !== 3) {
+      setState({
+        ...state,
+        index: state.index + 3,
+        steps: state.stapes + 1,
+        message: "",
+      });
+    }
   }
 
   function ilerle(evt) {
     // Bu event handler, "B" için yeni bir dizin elde etmek üzere yukarıdaki yardımcıyı kullanabilir,
     // ve buna göre state i değiştirir.
+    const { id: yon } = evt.target;
+    // ıd yi distructure et adı yon olsun.
+    if (getXY().x === 1 && yon === "left") {
+      setState({ ...state, message: "Sola gidemezsiniz" });
+    } else if (getXY().x === 3 && yon === "right") {
+      setState({ ...state, message: "Sağa gidemezsiniz" });
+    } else if (getXY().y === 1 && yon === "up") {
+      setState({ ...state, message: "Yukarıya gidemezsiniz" });
+    } else if (getXY().x === 3 && yon === "down") {
+      setState({ ...state, message: "Aşağıya gidemezsiniz" });
+    } else {
+      sonrakiIndex(yon);
+    }
   }
 
   function onChange(evt) {
     // inputun değerini güncellemek için bunu kullanabilirsiniz
+    const { name, value } = evt.target;
+    setState(...state);
   }
 
   function onSubmit(evt) {
@@ -47,32 +110,77 @@ export default function AppFunctional(props) {
   return (
     <div id="wrapper" className={props.className}>
       <div className="info">
-        <h3 id="coordinates">Koordinatlar (2, 2)</h3>
-        <h3 id="steps">0 kere ilerlediniz</h3>
+        <h3 id="coordinates">
+          Koordinatlar ({getXY().x}, {getXY().y})
+        </h3>
+        <h3 id="steps">{state.steps} kere ilerlediniz</h3>
       </div>
       <div id="grid">
-        {
-          [0, 1, 2, 3, 4, 5, 6, 7, 8].map(idx => (
-            <div key={idx} className={`square${idx === 4 ? ' active' : ''}`}>
-              {idx === 4 ? 'B' : null}
-            </div>
-          ))
-        }
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((idx) => (
+          <div
+            key={idx}
+            className={`square${idx === state.index ? " active" : ""}`}
+          >
+            {idx === state.index ? "B" : null}
+          </div>
+        ))}
       </div>
       <div className="info">
-        <h3 id="message"></h3>
+        <h3 id="message">{state.message}</h3>
       </div>
       <div id="keypad">
-        <button id="left">SOL</button>
-        <button id="up">YUKARI</button>
-        <button id="right">SAĞ</button>
-        <button id="down">AŞAĞI</button>
-        <button id="reset">reset</button>
+        <button
+          id="left"
+          onClick={() => {
+            ilerle();
+          }}
+        >
+          SOL
+        </button>
+        <button
+          id="up"
+          onClick={() => {
+            ilerle();
+          }}
+        >
+          YUKARI
+        </button>
+        <button
+          id="right"
+          onClick={() => {
+            ilerle();
+          }}
+        >
+          SAĞ
+        </button>
+        <button
+          id="down"
+          onClick={() => {
+            ilerle();
+          }}
+        >
+          AŞAĞI
+        </button>
+        <button
+          id="reset"
+          onClick={() => {
+            reset();
+          }}
+        >
+          reset
+        </button>
       </div>
       <form>
-        <input id="email" type="email" placeholder="email girin"></input>
+        <input
+          id="email"
+          onChange={() => {
+            changeHandler();
+          }}
+          type="email"
+          placeholder="email girin"
+        ></input>
         <input id="submit" type="submit"></input>
       </form>
     </div>
-  )
+  );
 }
