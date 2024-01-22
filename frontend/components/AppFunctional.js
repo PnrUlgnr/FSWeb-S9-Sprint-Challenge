@@ -1,4 +1,6 @@
 import React from "react";
+import { useState } from "react";
+import axios from "axios";
 
 // önerilen başlangıç stateleri
 //const initialMessage = ''
@@ -16,10 +18,10 @@ const initialState = {
 export default function AppFunctional(props) {
   // AŞAĞIDAKİ HELPERLAR SADECE ÖNERİDİR.
   // Bunları silip kendi mantığınızla sıfırdan geliştirebilirsiniz.
-  let x = (state.index % 3) + 1; // mod3 kalanı bulmaya çalışıyorum.indeximi 3 e böldüğümde kalanım benm x ekseninde hangi karede olduğumu göstericem
-  let y = Math.floor(state.index / 3) + 1;
 
   const [state, setState] = useState(initialState);
+  let x = (state.index % 3) + 1; // mod3 kalanı bulmaya çalışıyorum.indeximi 3 e böldüğümde kalanım benm x ekseninde hangi karede olduğumu göstericem
+  let y = Math.floor(state.index / 3) + 1;
 
   function getXY() {
     // Koordinatları izlemek için bir state e sahip olmak gerekli değildir.
@@ -100,11 +102,32 @@ export default function AppFunctional(props) {
   function onChange(evt) {
     // inputun değerini güncellemek için bunu kullanabilirsiniz
     const { name, value } = evt.target;
-    setState(...state);
+    setState({ ...state, email: value });
   }
 
   function onSubmit(evt) {
     // payloadu POST etmek için bir submit handlera da ihtiyacınız var.
+    evt.preventDefault();
+
+    axios
+      .post("http://localhost:9000/api/result", {
+        x: getXY().x,
+        Y: getXY.y,
+        email: state.email,
+        steps: state.steps,
+      })
+      .then((response) => {
+        setState({
+          ...state,
+          message: response.data.message,
+          email: "",
+        }).catch((error) => {
+          setState({
+            ...state,
+            message: error.response.data.message,
+          });
+        });
+      });
   }
 
   return (
@@ -129,54 +152,28 @@ export default function AppFunctional(props) {
         <h3 id="message">{state.message}</h3>
       </div>
       <div id="keypad">
-        <button
-          id="left"
-          onClick={() => {
-            ilerle();
-          }}
-        >
+        <button id="left" onClick={ilerle}>
           SOL
         </button>
-        <button
-          id="up"
-          onClick={() => {
-            ilerle();
-          }}
-        >
+        <button id="up" onClick={ilerle}>
           YUKARI
         </button>
-        <button
-          id="right"
-          onClick={() => {
-            ilerle();
-          }}
-        >
+        <button id="right" onClick={ilerle}>
           SAĞ
         </button>
-        <button
-          id="down"
-          onClick={() => {
-            ilerle();
-          }}
-        >
+        <button id="down" onClick={ilerle}>
           AŞAĞI
         </button>
-        <button
-          id="reset"
-          onClick={() => {
-            reset();
-          }}
-        >
+        <button id="reset" onClick={reset}>
           reset
         </button>
       </div>
-      <form>
+      <form onSubmit={onSubmit}>
         <input
           id="email"
-          onChange={() => {
-            changeHandler();
-          }}
+          onChange={onChange}
           type="email"
+          value={state.email}
           placeholder="email girin"
         ></input>
         <input id="submit" type="submit"></input>
